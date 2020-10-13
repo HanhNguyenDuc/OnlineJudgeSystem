@@ -27,6 +27,19 @@ public class ExecutionResult {
         this.stderr = stderr;
     }
 
+    public void getMetaFile(String metaFilePath) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(metaFilePath));
+        StringBuilder sb = new StringBuilder();
+        char[] buffer = new char[10];
+        while (reader.read(buffer) != -1){
+            sb.append(new String(buffer));
+            buffer = new char[10];
+        }
+        reader.close();
+
+        String content = sb.toString();
+    }
+
     public HashMap<String,String> toMap(){
         final HashMap<String, String> map = new HashMap<String, String>();
         map.put("stdin", this.stdin);
@@ -82,4 +95,6 @@ public class ExecutionResult {
         // read information from meta file
         return null;
     }
+
+    
 }

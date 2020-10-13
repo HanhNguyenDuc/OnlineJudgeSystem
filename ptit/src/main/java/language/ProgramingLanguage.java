@@ -1,5 +1,6 @@
 package language;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public abstract class ProgramingLanguage {
@@ -28,7 +29,7 @@ public abstract class ProgramingLanguage {
 
     public abstract Boolean requiredMultithreading();
 
-    public abstract String[] getCompilationCommand(String sourceFilename, String executableFilename);
+    public abstract ArrayList<String> getCompilationCommand(String sourceFilename, String executableFilename);
 
     /**
      * Được dùng để lấy ra lệnh thực thi ứng với từng ngôn ngữ

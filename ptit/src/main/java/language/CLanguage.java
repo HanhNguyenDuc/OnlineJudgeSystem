@@ -1,6 +1,7 @@
 package language;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,7 +21,7 @@ public class CLanguage extends ProgramingLanguage {
 
     @Override
     public String getDefaultSourceExtension() {
-        return null;
+        return "/usr/bin/x86_64-linux-gnu-gcc-7";
     }
 
     @Override
@@ -34,16 +35,18 @@ public class CLanguage extends ProgramingLanguage {
     }
 
     @Override
-    public String[] getCompilationCommand(String sourceFilename, String executableFilename) {
+    public ArrayList<String> getCompilationCommand(String sourceFilename, String executableFilename) {
         String[] commands = new String[] {
             CLanguage.gccPath,
             "-DEVAL",
-            "-std=gnu11",
+            "-std=gnu++11",
             "-o",
             executableFilename,
-            sourceFilename
+            sourceFilename,
+            "-lstdc++"
         };
-        return commands;
+        return new ArrayList<String>(Arrays.asList(commands));
+        // return commands;
     }
 
 

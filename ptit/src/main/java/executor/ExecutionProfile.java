@@ -14,7 +14,7 @@ public class ExecutionProfile {
      */
     ProgramingLanguage language;
     private String stdin, stdout, stderr, meta;
-    private int time, extraTime, memory;
+    private int time, extraTime, memory, processes;
 
     ExecutionProfile(ProgramingLanguage language, String stdin, String stdout, String stderr, int time, int extraTime,
             int memory, String meta) {
@@ -32,9 +32,10 @@ public class ExecutionProfile {
         this.extraTime = extraTime;
         this.memory = memory;
         this.meta = meta;
+        this.processes = 55;
     }
 
-    public HashMap<String, String> toMap() {
+    public HashMap<String, String> objectToMap(){
         HashMap<String, String> returnMap = new HashMap<String, String>();
         returnMap.put("language", this.language.getName());
         returnMap.put("stdin", this.stdin);
@@ -42,8 +43,24 @@ public class ExecutionProfile {
         returnMap.put("stdout", this.stdout);
         returnMap.put("time", Integer.toString(this.time));
         returnMap.put("extra-time", Integer.toString(this.extraTime));
-        returnMap.put("memory", Integer.toString(this.memory));
+        returnMap.put("mem", Integer.toString(this.memory));
         returnMap.put("meta", this.meta);
+        returnMap.put("processes", Integer.toString(this.processes));
+
+        return returnMap;
+    }
+
+    public HashMap<String, String> toMap() {
+        System.out.println("Reach toMap of ExecutionProfile");
+        HashMap<String, String> returnMap = new HashMap<String, String>();
+        returnMap.put("stderr", this.stderr);
+        returnMap.put("stdout", this.stdout);
+        returnMap.put("time", Integer.toString(this.time));
+        returnMap.put("extra-time", Integer.toString(this.extraTime));
+        returnMap.put("mem", Integer.toString(this.memory));
+        returnMap.put("meta", this.meta);
+        returnMap.put("_processes", Integer.toString(this.processes));
+        System.out.println(returnMap.toString());
         return returnMap;
     }
 
