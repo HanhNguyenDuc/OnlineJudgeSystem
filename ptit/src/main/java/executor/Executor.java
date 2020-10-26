@@ -14,7 +14,7 @@ import org.json.simple.parser.ParseException;
 import language.ProgramingLanguage;
 import utils.UnzipUtility;
 
-public class Executor {
+public class Executor{
     /**
      * Executor create a sandbox to use
      * Executor can exec different code and input
@@ -27,7 +27,7 @@ public class Executor {
     String executeFileName = "out.out";
     ProgramingLanguage lang;
 
-    Executor(int id) {
+    public Executor(int id) {
         this.sandbox = new Sandbox(id);
     }
 

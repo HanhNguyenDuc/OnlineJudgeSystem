@@ -77,7 +77,9 @@ public class Sandbox {
             256 * 1024,
             "meta.txt"
         );
-        executor.safetyRunCode(code, testPath, execProfile);
+
+        Thread thread = new Thread(new ExecutorThread(executor, code, testPath, execProfile));
+        thread.start();
     }
 
     Sandbox(int id){

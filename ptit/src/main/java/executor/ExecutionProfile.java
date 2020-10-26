@@ -49,7 +49,7 @@ public class ExecutionProfile {
         this.additionalParams = config1.getProfileConfigFile(config);
     }
 
-    ExecutionProfile(ProgramingLanguage language, int time, int extraTime, int memory, String meta){
+    public ExecutionProfile(ProgramingLanguage language, int time, int extraTime, int memory, String meta){
                 /**
                  * Init ExecutionProfile with config param
                  */
