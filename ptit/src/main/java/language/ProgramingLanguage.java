@@ -45,7 +45,7 @@ public abstract class ProgramingLanguage {
      * @param args
      * @return
      */
-    public abstract String[] getExecutionCommand(String executableFilename);
+    public abstract ArrayList<String> getExecutionCommand(String executableFilename);
 
     public abstract String[] getValidSourceFilenameAndExecFilename(String sourceCode);
 }

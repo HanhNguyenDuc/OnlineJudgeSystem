@@ -7,6 +7,7 @@ package executor;
  */
 
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -14,12 +15,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.io.*;
 import language.CLanguage;
 
-import java.util.Scanner;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
+
+import org.json.simple.parser.ParseException;
+
 
 public class Sandbox {
     // private static final Logger LOGGER = LogManager.getLogger(Sandbox.class);
@@ -27,34 +28,56 @@ public class Sandbox {
     private int boxId;
     private static String isolatePath = "/opt/isolate/isolate";
 
-    public static void main(String[] args) {
-        // Executor exec = new Executor();
-        // Code biên dịch c++
-        Sandbox sandbox = new Sandbox(255);
-        String codePath = "/home/OnlineJudgeSystem/ab.cpp";
-        String inContent = "2 3\n";
+    public static void main(String[] args) throws IOException, ParseException {
+        // Sandbox sandbox = new Sandbox(255);
+        // ExecutionProfile execProfile = new ExecutionProfile(
+        //     new CLanguage(), 
+        //     2, 
+        //     2, 
+        //     256*1024, 
+        //     "meta.txt", 
+        //     sandbox,
+        //     "compile"
+        // );
+        // CLanguage lang = new CLanguage();
+        // ArrayList<String> command = lang.getCompilationCommand("ab.cpp", "out1.out");
 
-        String codeExec = null;
-        try {
-            codeExec = new Scanner(new File(codePath)).useDelimiter("\\Z").next();
-            FileWriter fw = new FileWriter(new File("/var/local/lib/isolate/255/box/ab.cpp"));
-            fw.write(codeExec);
-            fw.close();
-            FileWriter fw2 = new FileWriter(new File("/var/local/lib/isolate/255/box/in.txt"));
-            fw2.write(inContent);
-            fw2.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e){
-            e.printStackTrace();
-        } finally{
-        // System.out.println(content);
-            ExecutionProfile execProfile = new ExecutionProfile(new CLanguage(), "in.txt", "out.txt", "err.txt", 2, 2, 256*1024, "meta.txt");
-            CLanguage lang = new CLanguage();
-            ArrayList<String> command = lang.getCompilationCommand("ab.cpp", "out.out");
+        // ExecutionResult execResult = Executor.executeCode(command, sandbox, execProfile);
+        // System.out.println(execResult);
 
-            Executor.executeCode(command, sandbox, execProfile);
-        }
+        // // Run executable File
+        // ExecutionProfile execProfile2 = new ExecutionProfile(
+        //     new CLanguage(),
+        //     2,
+        //     2,
+        //     256*1024,
+        //     "meta.txt",
+        //     sandbox,
+        //     "exec"
+        // );
+
+        // // ExecutionResult execResult = new ExecutionResult(execProfile, sandbox);
+
+        Executor executor = new Executor(230);
+        // Read file code
+        File file = new File("/home/OnlineJudgeSystem/ab.cpp");
+        FileInputStream fis = new FileInputStream(file);
+        byte[] data = new byte[(int) file.length()];
+        fis.read(data);
+        fis.close();
+        String code = new String(data, "UTF-8");
+        System.out.println(code);
+
+        String testPath = "/home/OnlineJudgeSystem/zipped.zip";
+
+        ExecutionProfile execProfile = new ExecutionProfile(
+            new CLanguage(),
+            2,
+            2,
+            256 * 1024,
+            "meta.txt"
+        );
+        executor.safetyRunCode(code, testPath, execProfile);
     }
 
     Sandbox(int id){
@@ -91,34 +114,8 @@ public class Sandbox {
         return result;
     }
 
-    public ProcessResult safetyExecuteCommand(ArrayList<String> command, ExecutionProfile executionProfile, String[] additionalContextParams){
-        /**
-         * Cách run command với isolate: 
-         * isolate options --run -- program arguments
-         */
-        System.out.println("Code has been executed!!!!");
+    
 
-        // LOGGER.debug("Code has been executed!!!!");
-        ArrayList<String> validExecutableCommand = (ArrayList<String>)Arrays.asList(this.getContextCommandParams(additionalContextParams));
-        
-        HashMap<String, String> profileDict = executionProfile.toMap();
-        for (Map.Entry<String, String> entry: profileDict.entrySet()){
-            validExecutableCommand.add(String.format("--%s = %s", entry.getKey(), entry.getValue()));
-        }
-        validExecutableCommand.add("--run");
-        validExecutableCommand.add("--");
-        validExecutableCommand.addAll(command);
-        String commandString = Sandbox.commandToString(validExecutableCommand);
-        ProcessResult pr = new ProcessResult();
-        try{
-            pr = Sandbox.unsafetyExecuteCommand(commandString);
-        }
-        catch (Exception e){
-            // LOGGER.debug("There is an Error when execute isolate command");
-            e.printStackTrace();
-        }
-        return pr;
-    }
     public ProcessResult safetyExecuteCommand(ArrayList<String> command, ExecutionProfile executionProfile){
         // ArrayList<String> validExecutableCommand = (ArrayList<String>)Arrays.asList(this.getContextCommandParams());
         System.out.println("Reach safetyExecuteCommand");
@@ -126,6 +123,9 @@ public class Sandbox {
         
         HashMap<String, String> profileDict = executionProfile.toMap();
         for (Map.Entry<String, String> entry: profileDict.entrySet()){
+            if (entry.getValue() == null){
+                continue;
+            }
             if (entry.getKey().charAt(0) == '_'){
                 String newKey = entry.getKey().substring(1);
                 validExecutableCommand.add(String.format("--%s=%s", newKey, entry.getValue()));
@@ -138,6 +138,7 @@ public class Sandbox {
         validExecutableCommand.add("--");
         validExecutableCommand.addAll(command);
         String commandString = Sandbox.commandToString(validExecutableCommand);
+        System.out.print(validExecutableCommand);
         // START debug
         System.out.println("COMMAND STRING: " + commandString);
         // END debug
@@ -146,7 +147,6 @@ public class Sandbox {
             pr = Sandbox.unsafetyExecuteCommand(commandString);
         }
         catch (Exception e){
-            // LOGGER.debug("There is an Error when execute isolate command");
             e.printStackTrace();
         }
         return pr;

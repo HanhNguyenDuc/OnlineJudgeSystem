@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import executor.ExecutionProfile;
+
 public class CLanguage extends ProgramingLanguage {
     private static final String gccPath = "";
 
@@ -70,9 +72,11 @@ public class CLanguage extends ProgramingLanguage {
     }
 
     @Override
-    public String[] getExecutionCommand(String executableFilename) {
-        String[] returnString = {executableFilename};
-        return returnString;
+    public ArrayList<String> getExecutionCommand(String executableFilename) {
+        String [] commands = new String[]{
+            "./" + executableFilename
+        };
+        return new ArrayList<String>(Arrays.asList(commands));
     }
 
 }

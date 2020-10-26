@@ -1,0 +1,5 @@
+{
+    "stdin": "in.txt",
+    "stdout": "out.txt",
+    "stderr": "err.txt"
+}
