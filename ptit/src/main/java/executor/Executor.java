@@ -9,8 +9,14 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import dao.SubmissionDAO;
+import entity.Problem;
+import entity.Submission;
 import language.ProgramingLanguage;
 import utils.UnzipUtility;
 
@@ -31,43 +37,116 @@ public class Executor{
         this.sandbox = new Sandbox(id);
     }
 
-    public void safetyRunCode(String code, String testPath, ExecutionProfile execProfile){
+    public void safetyRunCode(Problem problem, String code, String testPath, ExecutionProfile execProfile){
         /**
          * write code String to a file in isolate box
          * compile and run
          */
-        try{
+        String solutionCode = problem.getSolution();
+        ArrayList<String> submissionResult = new ArrayList<String>();
+        ArrayList<String> solutionResult = new ArrayList<String>();
+        JSONArray submissionReport = new JSONArray();
+        SubmissionDAO submissionDAO = new SubmissionDAO();
+        Submission submission = submissionDAO.createSubmission(problem, code);
+        try {
             FileWriter writer = new FileWriter(this.sandbox.getSandboxWorkDir() + "/" + this.codeFileName);
             writer.write(code);
             writer.close();
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
-        finally{
-            try {
-                // compile
-                ExecutionResult execResCom = this.compileCodeFile(execProfile);
-                System.out.println(execResCom.toString());
-                // run test
-                String testDir = this.sandbox.getSandboxWorkDir() + "/test";
-                UnzipUtility uzipUtil = new UnzipUtility();
-                uzipUtil.unzip(testPath, testDir);
+            // compile
+            ExecutionResult execResCom = this.compileCodeFile(execProfile);
+            System.out.println(execResCom.toJson().toJSONString());
+            // run test
+            String testDir = this.sandbox.getSandboxWorkDir() + "/test";
+            UnzipUtility uzipUtil = new UnzipUtility();
+            uzipUtil.unzip(testPath, testDir);
 
-                String[] files;
-                File f = new File(testDir);
-                files = f.list();
-                for (String filename : files){
-                    // Get list of file, move current file to "in.txt" and run execute code
-                    String filePath = this.sandbox.getSandboxWorkDir() + "/test/" + filename;
-                    String inputFilePath = this.sandbox.getSandboxWorkDir() + "/" + "in.txt";
-                    copyFile(filePath, inputFilePath);
-                    ExecutionResult execRes = this.execCodeFile(execProfile);
-                    System.out.println(execRes.toString());
+            String[] files;
+            File f = new File(testDir);
+            files = f.list();
+            for (String filename : files){
+                // Get list of file, move current file to "in.txt" and run execute code
+                String filePath = this.sandbox.getSandboxWorkDir() + "/test/" + filename;
+                String inputFilePath = this.sandbox.getSandboxWorkDir() + "/" + "in.txt";
+                copyFile(filePath, inputFilePath);
+                ExecutionResult execRes = this.execCodeFile(execProfile);
+                // System.out.println("JSON VALUE: ");
+                // System.out.println(execRes.toJson().get("additionParams"));
+
+                /**
+                 * Get output from execResult
+                 */
+                JSONObject testCaseReport = new JSONObject();
+                submissionReport.add(testCaseReport);
+                testCaseReport.put("exitcode", null);
+                testCaseReport.put("judgeVerdict", null);
+                testCaseReport.put("memory", execRes.toJson().get("memory"));
+                testCaseReport.put("time", execRes.toJson().get("time"));
+                if (execRes.toJson().get("exitcode") == null){
+                    testCaseReport.put("judgeVerdict", "TLE");
+                }else{
+                    testCaseReport.put("exitcode", execRes.toJson().get("exitcode"));
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
+                System.out.println(execRes.toJson().toJSONString());
+                String additionParamsString = (String)execRes.toJson().get("additionParams");
+                JSONParser jsonParser = new JSONParser();
+                JSONObject jsonObject = (JSONObject)jsonParser.parse(additionParamsString);
+                submissionResult.add((String)jsonObject.get("stdout"));
+                // System.out.println(jsonObject.get("stdout"));
             }
+            /**
+             * re-write code to this.codeFileName and execute code
+             */
+            writer = new FileWriter(this.sandbox.getSandboxWorkDir() + "/" + this.codeFileName);
+            writer.write(solutionCode);
+            writer.close();
+            ExecutionResult solutionResCom = this.compileCodeFile(execProfile);
+
+            for (String filename: files){
+                // Get list of file, move current file to "in.txt" and run execute code
+                String filePath = this.sandbox.getSandboxWorkDir() + "/test/" + filename;
+                String inputFilePath = this.sandbox.getSandboxWorkDir() + "/" + "in.txt";
+                copyFile(filePath, inputFilePath);
+                ExecutionResult execRes = this.execCodeFile(execProfile);
+                // System.out.println("JSON VALUE: ");
+                // System.out.println(execRes.toJson().get("additionParams"));
+
+                /**
+                 * Get output from execResult
+                 */
+                String additionParamsString = (String)execRes.toJson().get("additionParams");
+                JSONParser jsonParser = new JSONParser();
+                JSONObject jsonObject = (JSONObject)jsonParser.parse(additionParamsString);
+                solutionResult.add((String)jsonObject.get("stdout"));
+            }
+            
+
+            // JUDGINGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG
+            // HERE
+            // JUDGE CODE HERE
+            // JESUS CHRIST, JUDGE CODE HERE STUPID
+            System.out.println("Start comparing code");
+            for (int i=0; i<solutionResult.size(); i++){
+                String trueOutput = solutionResult.get(i);
+                String predOutput = submissionResult.get(i);
+                JSONObject testCaseReport = (JSONObject)submissionReport.get(i);
+                if (testCaseReport.get("judgeVerdict") == null){
+                    if (trueOutput.equals(predOutput)){
+                        testCaseReport.replace("judgeVerdict", "AC");
+                    }
+                    else{
+                        testCaseReport.replace("judgeVerdict", "WA");
+                    }
+                }
+            }
+            System.out.println(submissionReport.toJSONString());
+            /**
+             * Package SUBMISSION to write to DB
+             */
+            submission.setJudgeReport(submissionReport.toJSONString());
+            submissionDAO.updateSubmissionReport(submission);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

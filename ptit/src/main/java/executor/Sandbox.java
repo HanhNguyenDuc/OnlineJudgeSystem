@@ -58,28 +58,28 @@ public class Sandbox {
 
         // // ExecutionResult execResult = new ExecutionResult(execProfile, sandbox);
 
-        Executor executor = new Executor(230);
-        // Read file code
-        File file = new File("/home/OnlineJudgeSystem/ab.cpp");
-        FileInputStream fis = new FileInputStream(file);
-        byte[] data = new byte[(int) file.length()];
-        fis.read(data);
-        fis.close();
-        String code = new String(data, "UTF-8");
-        System.out.println(code);
+        // Executor executor = new Executor(230);
+        // // Read file code
+        // File file = new File("/home/OnlineJudgeSystem/ab.cpp");
+        // FileInputStream fis = new FileInputStream(file);
+        // byte[] data = new byte[(int) file.length()];
+        // fis.read(data);
+        // fis.close();
+        // String code = new String(data, "UTF-8");
+        // System.out.println(code);
 
-        String testPath = "/home/OnlineJudgeSystem/zipped.zip";
+        // String testPath = "/home/OnlineJudgeSystem/zipped.zip";
 
-        ExecutionProfile execProfile = new ExecutionProfile(
-            new CLanguage(),
-            2,
-            2,
-            256 * 1024,
-            "meta.txt"
-        );
+        // ExecutionProfile execProfile = new ExecutionProfile(
+        //     new CLanguage(),
+        //     2,
+        //     2,
+        //     256 * 1024,
+        //     "meta.txt"
+        // );
 
-        Thread thread = new Thread(new ExecutorThread(executor, code, testPath, execProfile));
-        thread.start();
+        // Thread thread = new Thread(new ExecutorThread(executor, code, testPath, execProfile));
+        // thread.start();
     }
 
     Sandbox(int id){
@@ -140,7 +140,6 @@ public class Sandbox {
         validExecutableCommand.add("--");
         validExecutableCommand.addAll(command);
         String commandString = Sandbox.commandToString(validExecutableCommand);
-        System.out.print(validExecutableCommand);
         // START debug
         System.out.println("COMMAND STRING: " + commandString);
         // END debug

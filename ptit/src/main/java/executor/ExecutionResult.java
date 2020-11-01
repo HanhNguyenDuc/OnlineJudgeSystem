@@ -86,7 +86,7 @@ public class ExecutionResult {
         map.put("message", this.message);
         map.put("time", Float.toString(this.time));
         map.put("additionParams", this.additionalResults.toJSONString());
-        System.out.print("JSON PARAMS" + this.additionalResults.toJSONString());
+        // System.out.print("JSON PARAMS" + this.additionalResults.toJSONString());
 
         return map;
     }
