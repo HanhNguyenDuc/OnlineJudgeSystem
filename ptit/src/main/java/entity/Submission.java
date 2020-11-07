@@ -1,11 +1,14 @@
 package entity;
 
+import language.ProgramingLanguage;
+
 public class Submission {
     private int id;
     private String code;
     private String judgeStatus;
     private Problem problem;
     private String judgeReport;
+    private ProgramingLanguage lang;
 
     public Submission(Problem problem,String code, String judgeStatus){
         this.problem = problem;
@@ -16,6 +19,12 @@ public class Submission {
     public Submission(Problem problem, String code){
         this.problem = problem;
         this.code = code;
+    }
+
+    public Submission(Problem problem, String code, ProgramingLanguage lang){
+        this.problem = problem;
+        this.code = code;
+        this.lang = lang;
     }
 
     public Submission(int id, Problem problem, String code){
@@ -62,5 +71,13 @@ public class Submission {
 
     public String getJudgeReport(){
         return this.judgeReport;
+    }
+
+    public void setProgramingLanguage(ProgramingLanguage lang){
+        this.lang = lang;
+    }
+
+    public ProgramingLanguage getProgramingLanguage(){
+        return this.lang;
     }
 }
