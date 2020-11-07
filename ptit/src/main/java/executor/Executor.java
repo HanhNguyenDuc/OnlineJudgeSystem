@@ -45,15 +45,21 @@ public class Executor{
         String solutionCode = problem.getSolution();
         ArrayList<String> submissionResult = new ArrayList<String>();
         ArrayList<String> solutionResult = new ArrayList<String>();
+        
         JSONArray submissionReport = new JSONArray();
+        JSONObject fullSubmissionReport = new JSONObject(); 
+        fullSubmissionReport.put("tests", submissionReport);
         SubmissionDAO submissionDAO = new SubmissionDAO();
         Submission submission = submissionDAO.createSubmission(problem, code);
         try {
+            submission.setJudgeStatus("JUDGING");
+            submissionDAO.updateSubmissionStatus(submission);
             FileWriter writer = new FileWriter(this.sandbox.getSandboxWorkDir() + "/" + this.codeFileName);
             writer.write(code);
             writer.close();
             // compile
             ExecutionResult execResCom = this.compileCodeFile(execProfile);
+            fullSubmissionReport.put("compile", execResCom.toJson());
             System.out.println(execResCom.toJson().toJSONString());
             // run test
             String testDir = this.sandbox.getSandboxWorkDir() + "/test";
@@ -142,11 +148,15 @@ public class Executor{
             /**
              * Package SUBMISSION to write to DB
              */
-            submission.setJudgeReport(submissionReport.toJSONString());
-            submissionDAO.updateSubmissionReport(submission);
             
         } catch (Exception e) {
             e.printStackTrace();
+        }
+        finally{
+            submission.setJudgeReport(fullSubmissionReport.toJSONString());
+            submissionDAO.updateSubmissionReport(submission);
+            submission.setJudgeStatus("DONE");
+            submissionDAO.updateSubmissionStatus(submission);
         }
     }
 

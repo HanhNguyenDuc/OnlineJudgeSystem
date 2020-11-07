@@ -19,7 +19,7 @@ public class TestClient {
         bos.flush();
         System.out.println(bis.read());
 
-        File file = new File("/home/OnlineJudgeSystem/ab.cpp");
+        File file = new File("/home/OnlineJudgeSystem/sigfpe.cpp");
         FileInputStream fis = new FileInputStream(file);
         byte[] data = new byte[(int) file.length()];
 

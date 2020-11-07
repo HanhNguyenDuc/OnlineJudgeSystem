@@ -52,4 +52,16 @@ public class SubmissionDAO extends DAO {
             e.printStackTrace();
         }
     }
+
+    public void updateSubmissionStatus(Submission submission){
+        String sql = "UPDATE submission SET judgeStatus = ? WHERE id = ?";
+        try{
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, submission.getJudgeStatus());
+            ps.setInt(2, submission.getId());
+            ps.executeUpdate();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 }
