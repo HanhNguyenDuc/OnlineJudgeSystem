@@ -1,0 +1,13 @@
+package ptit;
+
+import java.util.Scanner;
+
+public class SubmissionFile {
+    public static void main(String[] args){
+        Scanner sc = new Scanner(System.in);
+        int a, b;
+        a = sc.nextInt();
+        b = sc.nextInt();
+        System.out.println(Integer.toString(a + b));
+    }
+}

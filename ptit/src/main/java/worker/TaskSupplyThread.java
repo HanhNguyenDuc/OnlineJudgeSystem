@@ -1,5 +1,6 @@
 package worker;
 
+import java.util.LinkedList;
 import java.util.PriorityQueue;
 
 import dao.ProblemDAO;
@@ -12,10 +13,10 @@ import language.ProgramingLanguage;
 import redis.clients.jedis.Jedis;
 
 public class TaskSupplyThread implements Runnable{
-    private PriorityQueue<Submission> pq;
+    private LinkedList<Submission> pq;
     private final int extraTime = 2;
 
-    public TaskSupplyThread(PriorityQueue<Submission> pq){
+    public TaskSupplyThread(LinkedList<Submission> pq){
         this.pq = pq;
     }
 
@@ -26,7 +27,7 @@ public class TaskSupplyThread implements Runnable{
         Jedis jedis = new Jedis("localhost");
         while(true){
             for (int i=0; i<=10; i++){
-                System.out.println("judge-worker-" + Integer.toString(i));
+                // System.out.println("judge-worker-" + Integer.toString(i));
                 String status = jedis.get("judge-worker-" + Integer.toString(i));
                 if (status == null || !status.equals("inused")){
                     curExecutor = new Executor(i);
@@ -35,6 +36,7 @@ public class TaskSupplyThread implements Runnable{
             }
             if (curExecutor != null && this.pq.peek() != null){
                 Submission submission = this.pq.poll();
+                jedis.set("judge-worker-" + Integer.toString(curExecutor.getId()), "inused");
                 this.judgeCode(curExecutor, submission);
             }
         }
@@ -58,5 +60,18 @@ public class TaskSupplyThread implements Runnable{
         /**
          * This method gonna be update soon
          */
+        Problem problem = submission.getProblem();
+        ExecutionProfile execProfile = new ExecutionProfile(
+            submission.getProgramingLanguage(),
+            problem.getTimeLimit(),
+            this.extraTime,
+            problem.getMemLimit(),
+            "meta.txt"
+        );
+        
+        Thread thread = new Thread(new ExecutorThread(executor, problem, submission.getCode(), problem.getTestPath(), execProfile));
+        thread.start();
+        System.out.println("New judge thread has been created!!!!");
+
     }
 }

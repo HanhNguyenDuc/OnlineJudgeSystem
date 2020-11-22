@@ -28,13 +28,17 @@ public class Executor{
      */
     Sandbox sandbox;
     String meta = "meta.txt";
-    String codeFileName = "file.cpp";
+    String codeFileName = "SubmissionFile.java";
     String inputFileName;
-    String executeFileName = "out.out";
+    String executeFileName = "SubmissionFile.class";
     ProgramingLanguage lang;
 
     public Executor(int id) {
         this.sandbox = new Sandbox(id);
+    }
+
+    public int getId(){
+        return this.sandbox.getBoxId();
     }
 
     public void safetyRunCode(Problem problem, String code, String testPath, ExecutionProfile execProfile){
@@ -51,14 +55,32 @@ public class Executor{
         fullSubmissionReport.put("tests", submissionReport);
         SubmissionDAO submissionDAO = new SubmissionDAO();
         Submission submission = submissionDAO.createSubmission(problem, code);
+        String err = "";
+        
+        
+        
+        
+        
+        
         try {
             submission.setJudgeStatus("JUDGING");
             submissionDAO.updateSubmissionStatus(submission);
-            FileWriter writer = new FileWriter(this.sandbox.getSandboxWorkDir() + "/" + this.codeFileName);
+
+
+
+            // Write code to file
+            String codeFileName = execProfile.getLanguage().getCodeFileName(code);
+            String executeFileName = execProfile.getLanguage().getExecutionFileName(code);
+            FileWriter writer = new FileWriter(this.sandbox.getSandboxWorkDir() + "/" + codeFileName);
             writer.write(code);
             writer.close();
+
+
+
+
+
             // compile
-            ExecutionResult execResCom = this.compileCodeFile(execProfile);
+            ExecutionResult execResCom = this.compileCodeFile(execProfile, codeFileName, executeFileName);
             fullSubmissionReport.put("compile", execResCom.toJson());
             System.out.println(execResCom.toJson().toJSONString());
             // run test
@@ -69,12 +91,21 @@ public class Executor{
             String[] files;
             File f = new File(testDir);
             files = f.list();
+
+
+
+
+
+
+
+
+
             for (String filename : files){
                 // Get list of file, move current file to "in.txt" and run execute code
                 String filePath = this.sandbox.getSandboxWorkDir() + "/test/" + filename;
                 String inputFilePath = this.sandbox.getSandboxWorkDir() + "/" + "in.txt";
                 copyFile(filePath, inputFilePath);
-                ExecutionResult execRes = this.execCodeFile(execProfile);
+                ExecutionResult execRes = this.execCodeFile(execProfile, executeFileName);
                 // System.out.println("JSON VALUE: ");
                 // System.out.println(execRes.toJson().get("additionParams"));
 
@@ -99,23 +130,30 @@ public class Executor{
                 submissionResult.add((String)jsonObject.get("stdout"));
                 // System.out.println(jsonObject.get("stdout"));
             }
+
+
+
+
+
+
+
             /**
              * re-write code to this.codeFileName and execute code
              */
-            writer = new FileWriter(this.sandbox.getSandboxWorkDir() + "/" + this.codeFileName);
+            ExecutionProfile solutionProfile = problem.getSolutionProfile();
+            codeFileName = solutionProfile.getLanguage().getCodeFileName(solutionCode);
+            executeFileName = solutionProfile.getLanguage().getExecutionFileName(solutionCode);
+            writer = new FileWriter(this.sandbox.getSandboxWorkDir() + "/" + codeFileName);
             writer.write(solutionCode);
             writer.close();
-            ExecutionResult solutionResCom = this.compileCodeFile(execProfile);
+            ExecutionResult solutionResCom = this.compileCodeFile(solutionProfile, codeFileName, executeFileName);
 
             for (String filename: files){
                 // Get list of file, move current file to "in.txt" and run execute code
                 String filePath = this.sandbox.getSandboxWorkDir() + "/test/" + filename;
                 String inputFilePath = this.sandbox.getSandboxWorkDir() + "/" + "in.txt";
                 copyFile(filePath, inputFilePath);
-                ExecutionResult execRes = this.execCodeFile(execProfile);
-                // System.out.println("JSON VALUE: ");
-                // System.out.println(execRes.toJson().get("additionParams"));
-
+                ExecutionResult execRes = this.execCodeFile(solutionProfile, executeFileName);
                 /**
                  * Get output from execResult
                  */
@@ -126,10 +164,9 @@ public class Executor{
             }
             
 
-            // JUDGINGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG
-            // HERE
-            // JUDGE CODE HERE
-            // JESUS CHRIST, JUDGE CODE HERE STUPID
+
+
+            
             System.out.println("Start comparing code");
             for (int i=0; i<solutionResult.size(); i++){
                 String trueOutput = solutionResult.get(i);
@@ -145,17 +182,19 @@ public class Executor{
                 }
             }
             System.out.println(submissionReport.toJSONString());
-            /**
-             * Package SUBMISSION to write to DB
-             */
+
+
+
+
             
         } catch (Exception e) {
             e.printStackTrace();
+            err = e.toString();
         }
         finally{
             submission.setJudgeReport(fullSubmissionReport.toJSONString());
             submissionDAO.updateSubmissionReport(submission);
-            submission.setJudgeStatus("DONE");
+            submission.setJudgeStatus("DONE" + err);
             submissionDAO.updateSubmissionStatus(submission);
         }
     }
@@ -183,7 +222,7 @@ public class Executor{
     }
 
 
-    public ExecutionResult compileCodeFile(ExecutionProfile execProfile)
+    public ExecutionResult compileCodeFile(ExecutionProfile execProfile, String codeFileName, String executeFileName)
             throws FileNotFoundException, ParseException, IOException {
         /**
          * write compile ExecutionResult to Database
@@ -191,16 +230,16 @@ public class Executor{
         execProfile.setAdditionalConfig("compile");
         execProfile.setSandbox(this.sandbox);
         
-        ArrayList<String> command = execProfile.getLanguage().getCompilationCommand(this.codeFileName, this.executeFileName);
+        ArrayList<String> command = execProfile.getLanguage().getCompilationCommand(codeFileName, executeFileName);
         return this.executeCode(command, execProfile, true);
     }
 
 
-    public ExecutionResult execCodeFile(ExecutionProfile execProfile)
+    public ExecutionResult execCodeFile(ExecutionProfile execProfile, String executeFileName)
             throws FileNotFoundException, ParseException, IOException {
         execProfile.setAdditionalConfig("execute");
         execProfile.setSandbox(this.sandbox);
-        ArrayList<String> command = execProfile.getLanguage().getExecutionCommand(this.executeFileName);
+        ArrayList<String> command = execProfile.getLanguage().getExecutionCommand(executeFileName);
         return this.executeCode(command, execProfile, false);
     }
 

@@ -1,5 +1,8 @@
 package entity;
 
+import executor.ExecutionProfile;
+import language.CLanguage;
+
 public class Problem {
     private int id, timeLimit, memLimit, numSolved;
     private String name, statement, solution, testPath;
@@ -14,6 +17,18 @@ public class Problem {
         this.statement = statement;
         this.solution = solution;
         this.testPath = testPath;
+    }
+
+    public ExecutionProfile getSolutionProfile(){
+        ExecutionProfile execProfile = new ExecutionProfile(
+            new CLanguage(),
+            this.timeLimit,
+            2,
+            this.memLimit,
+            "meta.txt"
+        );
+
+        return execProfile;
     }
 
     public int getId(){

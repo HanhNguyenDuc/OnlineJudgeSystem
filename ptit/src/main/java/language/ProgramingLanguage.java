@@ -15,6 +15,13 @@ public abstract class ProgramingLanguage {
         return this.sourceExtension;
     }
 
+    public String getCodeFileName(String code){
+        return "filename";
+    }
+    public String getExecutionFileName(String code){
+        return "filename";
+    }
+
     public String getDefaultSourceExtension(){
         String[] sourceExtension = this.getSourceExtension();
         if (sourceExtension.length > 0){

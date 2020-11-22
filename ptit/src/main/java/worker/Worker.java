@@ -12,6 +12,7 @@ import executor.ExecutionProfile;
 import executor.Executor;
 import executor.ExecutorThread;
 import language.CLanguage;
+import language.JavaLanguage;
 import language.ProgramingLanguage;
 import redis.clients.jedis.Jedis;
 
@@ -49,12 +50,16 @@ public class Worker {
         System.out.println("Server dang chay");
         while (true){
             Socket connection = socketServer.accept();
-            System.out.print("langCode");
             BufferedOutputStream bos = new BufferedOutputStream(connection.getOutputStream());
             BufferedInputStream bis = new BufferedInputStream(connection.getInputStream());
             
             int langCode = bis.read();
             System.out.print("langCode" + Integer.toString(langCode));
+            bos.write(1);
+            bos.flush();
+
+            int problemId = bis.read();
+            System.out.print("Problem id:");
             bos.write(1);
             bos.flush();
             
@@ -73,7 +78,7 @@ public class Worker {
                 }
             }
             if (curExecutor != null){
-                this.judgeCode(curExecutor, code, new CLanguage(), 1);
+                this.judgeCode(curExecutor, code, new JavaLanguage(), 1);
             }
             else{
                 System.out.println("No available sandbox");

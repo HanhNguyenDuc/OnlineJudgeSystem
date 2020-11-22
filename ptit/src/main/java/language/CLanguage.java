@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import executor.ExecutionProfile;
 
 public class CLanguage extends ProgramingLanguage {
     private static final String gccPath = "";
@@ -79,4 +78,12 @@ public class CLanguage extends ProgramingLanguage {
         return new ArrayList<String>(Arrays.asList(commands));
     }
 
+    @Override
+    public String getCodeFileName(String code){
+        return "filename.cpp";
+    }
+
+    public String getExecutionFileName(String code){
+        return "filename.out";
+    }
 }

@@ -31,6 +31,7 @@ public class ExecutionProfile {
     private static JSONParser jsonParser = new JSONParser();
     private Sandbox sandbox;
     private String additionalConfig;
+    private String filename;
 
     ExecutionProfile(ProgramingLanguage language, int time, int extraTime, int memory, String meta,
             Sandbox sandbox, String config) throws ParseException, FileNotFoundException, IOException {
@@ -48,6 +49,26 @@ public class ExecutionProfile {
         Config config1 = new Config();
         this.additionalParams = config1.getProfileConfigFile(config);
     }
+
+
+    ExecutionProfile(ProgramingLanguage language, int time, int extraTime, int memory, String meta,
+            Sandbox sandbox, String config, String filename) throws ParseException, FileNotFoundException, IOException {
+                /**
+                 * Init ExecutionProfile with config param
+                 */
+        this.language = language;
+        this.time = time;
+        this.extraTime = extraTime;
+        this.memory = memory;
+        this.sandbox = sandbox;
+        this.meta = sandbox.getSandboxWorkDir() + "/" + meta;
+        this.processes = 55;
+        this.additionalConfig = config;
+        Config config1 = new Config();
+        this.additionalParams = config1.getProfileConfigFile(config);
+        this.filename = filename;
+    }
+
 
     public ExecutionProfile(ProgramingLanguage language, int time, int extraTime, int memory, String meta){
                 /**
@@ -141,5 +162,9 @@ public class ExecutionProfile {
     public JSONObject getAdditionalParams(){
         return this.additionalParams;
     }
+
+    // public String getFileName(){
+        
+    // }
 
 }
