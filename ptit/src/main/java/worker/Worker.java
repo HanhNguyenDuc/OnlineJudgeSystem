@@ -7,7 +7,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import dao.ProblemDAO;
+import dao.SubmissionDAO;
 import entity.Problem;
+import entity.Submission;
 import executor.ExecutionProfile;
 import executor.Executor;
 import executor.ExecutorThread;
@@ -53,51 +55,71 @@ public class Worker {
             BufferedOutputStream bos = new BufferedOutputStream(connection.getOutputStream());
             BufferedInputStream bis = new BufferedInputStream(connection.getInputStream());
             
+            ProgramingLanguage lang = null;
             int langCode = bis.read();
+            if (langCode == 1){
+                lang = new CLanguage();
+            }
+            else if (langCode == 2){
+                lang = new JavaLanguage();
+            }
             System.out.print("langCode" + Integer.toString(langCode));
             bos.write(1);
             bos.flush();
 
             int problemId = bis.read();
+            ProblemDAO problemDAO = new ProblemDAO();
+            Problem problem = problemDAO.getProblemById(problemId);
+            System.out.println(problem);
             System.out.print("Problem id:");
             bos.write(1);
             bos.flush();
             
             String code = new String(bis.readAllBytes());
+
+            SubmissionDAO submissionDAO = new SubmissionDAO();
+            Submission submission = submissionDAO.createSubmission(problem, code);
+            submission.setProgramingLanguage(lang);
             
             System.out.println(code);
 
             // find executor is not be used
             Executor curExecutor = null;
-            for (int i=0; i<=10; i++){
-                System.out.println("judge-worker-" + Integer.toString(i));
-                String status = jedis.get("judge-worker-" + Integer.toString(i));
-                if (status == null || !status.equals("inused")){
-                    curExecutor = new Executor(i);
+            while(true){
+                for (int i=0; i<=10; i++){
+                    System.out.println("judge-worker-" + Integer.toString(i));
+                    String status = jedis.get("judge-worker-" + Integer.toString(i));
+                    if (status == null || !status.equals("inused")){
+                        curExecutor = new Executor(i);
+                        jedis.set("judge-worker-" + Integer.toString(i), "inused");
+                        break;
+                    }
+                }
+                if (curExecutor != null){
                     break;
                 }
             }
             if (curExecutor != null){
-                this.judgeCode(curExecutor, code, new JavaLanguage(), 1);
+                this.judgeCode(curExecutor, submission);
             }
             else{
                 System.out.println("No available sandbox");
             }
         }
-        
     }
 
-    public void judgeCode(Executor executor, String code, ProgramingLanguage lang, int problemId){
-        ProblemDAO problemDao = new ProblemDAO();
-        Problem problem = problemDao.getProblemById(problemId);
+    public void judgeCode(Executor executor, Submission submission){
+        Problem problem = submission.getProblem();
+        ProgramingLanguage lang = submission.getProgramingLanguage();
         ExecutionProfile execProfile = new ExecutionProfile(
             lang,
             problem.getTimeLimit(),
             this.extraTime,
             problem.getMemLimit(),
-            "meta.txt"
+            "meta.txt",
+            executor.getSandBox()
         );
-        Thread thread = new Thread(new ExecutorThread(executor, problem, code, problem.getTestPath(), execProfile));
+        Thread thread = new Thread(new ExecutorThread(executor, submission, problem.getTestPath(), execProfile));
         thread.start();
     }
 }

@@ -1,9 +1,6 @@
 package worker;
 
 import java.util.LinkedList;
-import java.util.PriorityQueue;
-
-import dao.ProblemDAO;
 import entity.Problem;
 import entity.Submission;
 import executor.ExecutionProfile;
@@ -29,49 +26,46 @@ public class TaskSupplyThread implements Runnable{
             for (int i=0; i<=10; i++){
                 // System.out.println("judge-worker-" + Integer.toString(i));
                 String status = jedis.get("judge-worker-" + Integer.toString(i));
+                
                 if (status == null || !status.equals("inused")){
+                    Submission submission = this.pq.poll();
+                    if (submission == null){
+                        continue;
+                    }
+                    jedis.set("judge-worker-" + Integer.toString(i), "inused");
                     curExecutor = new Executor(i);
+                    this.judgeCode(curExecutor, submission);
                     break;
                 }
-            }
-            if (curExecutor != null && this.pq.peek() != null){
-                Submission submission = this.pq.poll();
-                jedis.set("judge-worker-" + Integer.toString(curExecutor.getId()), "inused");
-                this.judgeCode(curExecutor, submission);
             }
         }
     }
 
-    public void judgeCode(Executor executor, String code, ProgramingLanguage lang, int problemId){
-        ProblemDAO problemDao = new ProblemDAO();
-        Problem problem = problemDao.getProblemById(problemId);
+    // public void judgeCode(Executor executor, Submission submission){
+    //     ProblemDAO problemDao = new ProblemDAO();
+    //     ExecutionProfile execProfile = new ExecutionProfile(
+    //         lang,
+    //         submission.getProblem().getTimeLimit(),
+    //         this.extraTime,
+    //         submission.getProblem().getMemLimit(),
+    //         "meta.txt"
+    //     );
+    //     Thread thread = new Thread(new ExecutorThread(executor, submission, submission.getProblem().getTestPath(), execProfile));
+    //     thread.start();
+    // }
+
+    public void judgeCode(Executor executor, Submission submission){
+        Problem problem = submission.getProblem();
+        ProgramingLanguage lang = submission.getProgramingLanguage();
         ExecutionProfile execProfile = new ExecutionProfile(
             lang,
             problem.getTimeLimit(),
             this.extraTime,
             problem.getMemLimit(),
-            "meta.txt"
+            "meta.txt",
+            executor.getSandBox()
         );
-        Thread thread = new Thread(new ExecutorThread(executor, problem, code, problem.getTestPath(), execProfile));
+        Thread thread = new Thread(new ExecutorThread(executor, submission, problem.getTestPath(), execProfile));
         thread.start();
-    }
-
-    public void judgeCode(Executor executor, Submission submission){
-        /**
-         * This method gonna be update soon
-         */
-        Problem problem = submission.getProblem();
-        ExecutionProfile execProfile = new ExecutionProfile(
-            submission.getProgramingLanguage(),
-            problem.getTimeLimit(),
-            this.extraTime,
-            problem.getMemLimit(),
-            "meta.txt"
-        );
-        
-        Thread thread = new Thread(new ExecutorThread(executor, problem, submission.getCode(), problem.getTestPath(), execProfile));
-        thread.start();
-        System.out.println("New judge thread has been created!!!!");
-
     }
 }

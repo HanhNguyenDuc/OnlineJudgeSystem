@@ -100,6 +100,7 @@ public class Sandbox {
     }
 
     public int getBoxId(){
+
         return this.boxId;
     }
 
@@ -154,6 +155,7 @@ public class Sandbox {
     }
 
     public String getSandboxWorkDir(){
+        System.out.println("USING BOXXXXXX: " + Integer.toString(this.boxId));
         return String.format("/var/local/lib/isolate/%s/box", Integer.toString(this.boxId));
     }
 

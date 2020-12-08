@@ -7,6 +7,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.LinkedList;
 import dao.ProblemDAO;
+import dao.SubmissionDAO;
 import entity.Problem;
 import entity.Submission;
 import language.CLanguage;
@@ -26,29 +27,35 @@ public class TCPServerWorker {
         thread.start();
         ServerSocket socketServer = new ServerSocket(1107);
         ProblemDAO problemDAO = new ProblemDAO();
+        SubmissionDAO submissionDAO = new SubmissionDAO();
         while (true){
             Socket connection = socketServer.accept();
             BufferedOutputStream bos = new BufferedOutputStream(connection.getOutputStream());
             BufferedInputStream bis = new BufferedInputStream(connection.getInputStream());
-            
-            int problemId = bis.read();
-            Problem problem = problemDAO.getProblemById(problemId);
-            // bos.write(1);
-            // bos.flush();
             int programingLangId = bis.read();
-            ProgramingLanguage proLang = null;
+            bos.write(1);
+            bos.flush();
+            ProgramingLanguage proLang = new CLanguage();
             if (programingLangId == 1){
                 proLang = new CLanguage(); 
             }
             else if (programingLangId == 2){
                 proLang = new JavaLanguage();
             }
+            int problemId = bis.read();
+            Problem problem = problemDAO.getProblemById(problemId);
+            bos.write(1);
+            bos.flush();
+            
             // bos.write(1);
             // // bos.flush();
             String code = new String(bis.readAllBytes());
+            // bos.write(1);
+            // bos.flush();
 
-            Submission submission = new Submission(problem, code, proLang);
-            System.out.println(code);
+            Submission submission = submissionDAO.createSubmission(problem, code);
+            submission.setProgramingLanguage(proLang);
+            System.out.println(submission.getId());
             pq.add(submission);
         }
     }

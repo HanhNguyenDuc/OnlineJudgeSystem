@@ -70,15 +70,16 @@ public class ExecutionProfile {
     }
 
 
-    public ExecutionProfile(ProgramingLanguage language, int time, int extraTime, int memory, String meta){
+    public ExecutionProfile(ProgramingLanguage language, int time, int extraTime, int memory, String meta, Sandbox sandbox){
                 /**
                  * Init ExecutionProfile with config param
                  */
         this.language = language;
         this.time = time;
         this.extraTime = extraTime;
+        this.sandbox = sandbox;
         this.memory = memory;
-        this.meta = "/var/local/lib/isolate/230/box" + "/" + meta;
+        this.meta = sandbox.getSandboxWorkDir() + "/" + meta;
         this.processes = 55;
     }
 

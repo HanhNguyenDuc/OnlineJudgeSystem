@@ -18,6 +18,7 @@ import dao.SubmissionDAO;
 import entity.Problem;
 import entity.Submission;
 import language.ProgramingLanguage;
+import redis.clients.jedis.Jedis;
 import utils.UnzipUtility;
 
 public class Executor{
@@ -33,6 +34,10 @@ public class Executor{
     String executeFileName = "SubmissionFile.class";
     ProgramingLanguage lang;
 
+    public Sandbox getSandBox(){
+        return this.sandbox;
+    }
+
     public Executor(int id) {
         this.sandbox = new Sandbox(id);
     }
@@ -41,11 +46,13 @@ public class Executor{
         return this.sandbox.getBoxId();
     }
 
-    public void safetyRunCode(Problem problem, String code, String testPath, ExecutionProfile execProfile){
+    public void safetyRunCode(Submission submission, String testPath, ExecutionProfile execProfile){
         /**
          * write code String to a file in isolate box
          * compile and run
          */
+        Problem problem = submission.getProblem();
+        String code = submission.getCode();
         String solutionCode = problem.getSolution();
         ArrayList<String> submissionResult = new ArrayList<String>();
         ArrayList<String> solutionResult = new ArrayList<String>();
@@ -54,7 +61,6 @@ public class Executor{
         JSONObject fullSubmissionReport = new JSONObject(); 
         fullSubmissionReport.put("tests", submissionReport);
         SubmissionDAO submissionDAO = new SubmissionDAO();
-        Submission submission = submissionDAO.createSubmission(problem, code);
         String err = "";
         
         
@@ -85,12 +91,31 @@ public class Executor{
             System.out.println(execResCom.toJson().toJSONString());
             // run test
             String testDir = this.sandbox.getSandboxWorkDir() + "/test";
-            UnzipUtility uzipUtil = new UnzipUtility();
-            uzipUtil.unzip(testPath, testDir);
+            
+            Jedis jedis = new Jedis("localhost");
+            while (true){
+                // System.out.println("file-path--zippedzip");
+                if (jedis.get("file-path--zippedzip") == null || !jedis.get("file-path--zippedzip").equals("inused")){
+                    break;
+                }
+            }
 
-            String[] files;
-            File f = new File(testDir);
-            files = f.list();
+            String[] files = null;
+            try{
+                jedis.set("file-path--zippedzip", "inused");
+                UnzipUtility uzipUtil = new UnzipUtility();
+                uzipUtil.unzip(testPath, testDir);
+                File f = new File(testDir);
+                files = f.list();
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
+            finally{
+                jedis.set("file-path--zippedzip", "free");
+            }
+
+            jedis.close();
 
 
 
@@ -140,7 +165,7 @@ public class Executor{
             /**
              * re-write code to this.codeFileName and execute code
              */
-            ExecutionProfile solutionProfile = problem.getSolutionProfile();
+            ExecutionProfile solutionProfile = problem.getSolutionProfile(sandbox);
             codeFileName = solutionProfile.getLanguage().getCodeFileName(solutionCode);
             executeFileName = solutionProfile.getLanguage().getExecutionFileName(solutionCode);
             writer = new FileWriter(this.sandbox.getSandboxWorkDir() + "/" + codeFileName);
@@ -194,8 +219,17 @@ public class Executor{
         finally{
             submission.setJudgeReport(fullSubmissionReport.toJSONString());
             submissionDAO.updateSubmissionReport(submission);
-            submission.setJudgeStatus("DONE" + err);
+            if (err.equals("")){
+                submission.setJudgeStatus("DONE");
+            }
+            else{
+                submission.setJudgeStatus("FAIL");
+                submission.setJudgeErr(err);
+            }
             submissionDAO.updateSubmissionStatus(submission);
+
+            Jedis jedis = new Jedis("localhost");
+            jedis.set("judge-worker-" + Integer.toString(this.getId()), "free");
         }
     }
 

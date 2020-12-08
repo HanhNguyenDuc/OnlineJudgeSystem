@@ -1,6 +1,7 @@
 package entity;
 
 import executor.ExecutionProfile;
+import executor.Sandbox;
 import language.CLanguage;
 
 public class Problem {
@@ -19,13 +20,14 @@ public class Problem {
         this.testPath = testPath;
     }
 
-    public ExecutionProfile getSolutionProfile(){
+    public ExecutionProfile getSolutionProfile(Sandbox sandbox){
         ExecutionProfile execProfile = new ExecutionProfile(
             new CLanguage(),
             this.timeLimit,
             2,
             this.memLimit,
-            "meta.txt"
+            "meta.txt",
+            sandbox
         );
 
         return execProfile;

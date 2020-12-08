@@ -1,6 +1,7 @@
 package executor;
 
 import entity.Problem;
+import entity.Submission;
 
 public class ExecutorThread implements Runnable {
 
@@ -8,18 +9,18 @@ public class ExecutorThread implements Runnable {
     String code, testPath, solutionCode;
     ExecutionProfile execProfile;
     Problem problem;
+    Submission submission;
 
-    public ExecutorThread(Executor executor, Problem problem, String code, String testPath, ExecutionProfile execProfile){
+    public ExecutorThread(Executor executor, Submission submission, String testPath, ExecutionProfile execProfile){
         this.executor = executor;
-        this.code = code;
+        this.submission = submission;
         this.testPath = testPath;
         this.execProfile = execProfile;
-        this.problem = problem;
     }
 
     @Override
     public void run() {
-        this.executor.safetyRunCode(problem, code, testPath, execProfile);
+        this.executor.safetyRunCode(submission, testPath, execProfile);
     }
 
 }

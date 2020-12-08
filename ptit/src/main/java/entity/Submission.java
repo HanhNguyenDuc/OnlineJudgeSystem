@@ -9,6 +9,7 @@ public class Submission {
     private Problem problem;
     private String judgeReport;
     private ProgramingLanguage lang;
+    private String judgeErr = null;
 
     public Submission(Problem problem,String code, String judgeStatus){
         this.problem = problem;
@@ -79,5 +80,13 @@ public class Submission {
 
     public ProgramingLanguage getProgramingLanguage(){
         return this.lang;
+    }
+
+    public String getJudgeErr(){
+        return this.judgeErr;
+    }
+
+    public void setJudgeErr(String judgeErr){
+        this.judgeErr = judgeErr;
     }
 }
