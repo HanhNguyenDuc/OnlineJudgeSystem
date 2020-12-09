@@ -10,6 +10,16 @@ public class Submission {
     private String judgeReport;
     private ProgramingLanguage lang;
     private String judgeErr = null;
+    private String verdict;
+    
+
+    public String getVerdict(){
+        return this.verdict;
+    }
+
+    public void setVerdict(String verdict){
+        this.verdict = verdict;
+    }
 
     public Submission(Problem problem,String code, String judgeStatus){
         this.problem = problem;

@@ -29,6 +29,7 @@ public class TaskSupplyThread implements Runnable{
                 
                 if (status == null || !status.equals("inused")){
                     Submission submission = this.pq.poll();
+                    
                     if (submission == null){
                         continue;
                     }

@@ -190,8 +190,9 @@ public class Executor{
             
 
 
+            String verdict = "AC";
 
-            
+            boolean flag = true;
             System.out.println("Start comparing code");
             for (int i=0; i<solutionResult.size(); i++){
                 String trueOutput = solutionResult.get(i);
@@ -200,17 +201,25 @@ public class Executor{
                 if (testCaseReport.get("judgeVerdict") == null){
                     if (trueOutput.equals(predOutput)){
                         testCaseReport.replace("judgeVerdict", "AC");
+                        
                     }
                     else{
                         testCaseReport.replace("judgeVerdict", "WA");
+                        flag = false;
+                        break;
                     }
+                }
+                else if (testCaseReport.get("judgeVerdict") == "TLE"){
+                    verdict = "TLE";
+                    break;
                 }
             }
             System.out.println(submissionReport.toJSONString());
-
-
-
-
+            
+            if (flag == false){
+                verdict = "WA";
+            }
+            submission.setVerdict(verdict);
             
         } catch (Exception e) {
             e.printStackTrace();
@@ -225,9 +234,10 @@ public class Executor{
             else{
                 submission.setJudgeStatus("FAIL");
                 submission.setJudgeErr(err);
+                submission.setVerdict("ERR");
             }
             submissionDAO.updateSubmissionStatus(submission);
-
+            
             Jedis jedis = new Jedis("localhost");
             jedis.set("judge-worker-" + Integer.toString(this.getId()), "free");
         }

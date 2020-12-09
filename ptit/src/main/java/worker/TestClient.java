@@ -10,7 +10,7 @@ import java.net.UnknownHostException;
 
 public class TestClient {
     public static void main(String arg[]) throws UnknownHostException, IOException {
-        for (int i=0; i<=50; i++){
+        for (int i=0; i<=25; i++){
             Socket client = new Socket("localhost", 1107);
             BufferedOutputStream bos = new BufferedOutputStream(client.getOutputStream());
             BufferedInputStream bis = new BufferedInputStream(client.getInputStream());
