@@ -53,7 +53,7 @@ public class TCPServerWorker {
             // bos.write(1);
             // bos.flush();
 
-            Submission submission = submissionDAO.createSubmission(problem, code);
+            Submission submission = submissionDAO.createSubmission(problem, code, proLang);
             submission.setProgramingLanguage(proLang);
             System.out.println(submission.getId());
             pq.add(submission);

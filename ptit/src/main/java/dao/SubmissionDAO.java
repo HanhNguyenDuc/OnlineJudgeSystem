@@ -6,18 +6,26 @@ import java.sql.Statement;
 
 import entity.Problem;
 import entity.Submission;
+import language.ProgramingLanguage;
 
 public class SubmissionDAO extends DAO {
     public SubmissionDAO() {
         super();
     }
 
-    public Submission createSubmission(Problem problem, String code){
+    public Submission createSubmission(Problem problem, String code, ProgramingLanguage lang){
         Submission submission = null;
-        String sql = "INSERT INTO submission (submissionCode) VALUES (?)";
+        String sql = "INSERT INTO submission (submissionCode, lang) VALUES (?, ?)";
         try{
             PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, code);
+
+            if (lang.getName().equals("java")){
+                ps.setInt(2, 2);
+            }
+            else{
+                ps.setInt(2, 1);
+            }
             ps.executeUpdate();
             ResultSet rs = ps.getGeneratedKeys();
 
@@ -66,5 +74,4 @@ public class SubmissionDAO extends DAO {
             e.printStackTrace();
         }
     }
-
 }

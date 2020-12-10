@@ -78,7 +78,7 @@ public class Worker {
             String code = new String(bis.readAllBytes());
 
             SubmissionDAO submissionDAO = new SubmissionDAO();
-            Submission submission = submissionDAO.createSubmission(problem, code);
+            Submission submission = submissionDAO.createSubmission(problem, code, lang);
             submission.setProgramingLanguage(lang);
             
             System.out.println(code);
